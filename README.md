@@ -72,17 +72,5 @@ Note: Groq's earlier default `llama-3.1-8b-instant` returned HTTP 404 (model ret
 checked with the `/models` endpoint and `openai/gpt-oss-20b` was used. This is exactly the "check the model name"
 failure the manual describes, and it surfaced as a controlled `503`.
 
-## Viva answers
-1. **Purpose of FastAPI:** exposes the RAG pipeline as HTTP endpoints so other apps can send a question and get an answer, with automatic validation and interactive docs.
-2. **Local vs cloud LLM:** a local LLM (Ollama) runs on your own machine using its RAM/disk; a cloud API runs on the provider's servers and is called over the internet, with keys, quotas and network dependence.
-3. **Does hosting FastAPI in the cloud host the LLM?** No. The API can be in the cloud while the model still runs elsewhere (a provider API or a separate server).
-4. **Why no hard-coded API key?** Source code gets committed/shared, so the key leaks; env vars/`.env` keep secrets out of version control and allow rotation per environment.
-5. **Input validation / max length:** checking that input is well-formed before processing. A length cap prevents abuse, high token cost, slow requests and oversized prompts.
-6. **Health endpoint:** tells monitors/load balancers the process is alive. Limitation: it does not prove the LLM provider, quota or network works.
-7. **Why not reload model/index per request:** loading is slow and memory-heavy (~15 s here vs <1 s per request); load once and reuse.
-8. **Answer absent from the knowledge base:** say there is not enough information and point to support, rather than hallucinate.
-9. **Two cloud failure reasons:** invalid/expired key or exhausted quota/rate limit (401/429); network outage/timeout or wrong/retired model name (404).
-10. **Fully production-ready?** No. Needs e.g. authentication, HTTPS, rate limiting, monitoring, secure secret management, load testing, model evaluation, recovery plan.
-
 ## Limitations
 Rule-based intent classifier; the review step only checks the `INSUFFICIENT_CONTEXT` marker (not a factuality verifier); knowledge base is public third-party help pages used as sample FAQ content. Do not send confidential or personal data to the third-party API.
